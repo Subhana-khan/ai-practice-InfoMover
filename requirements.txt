@@ -11,3 +11,4 @@ langchain-openai~=0.3.12
 
 pydantic~=2.11.3
 llama-index-core~=0.12.30
+langgraph~=0.3.31
