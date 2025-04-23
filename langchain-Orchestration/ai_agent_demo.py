@@ -5,9 +5,13 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
+from langchain_experimental.tools.python.tool import PythonREPLTool
+
 
 load_dotenv()
 os.environ["LANGSMITH_TRACING"] = "true"
+
+
 
 class AIAGENT:
     def __init__(self):
@@ -15,9 +19,10 @@ class AIAGENT:
         self.tools= self.initialize_tools()
 
     def initialize_tools(self):
-        tavily_search = TavilySearchResults(max_results=2)
+        tavily_search = TavilySearchResults(max_results=2)     ## tool for performing web searches
+        python_tool = PythonREPLTool()    ## For Coding, Math, & Logic
         print("Tools initialized.")
-        return [tavily_search]
+        return [tavily_search, python_tool]
 
     def initialize_model(self):
         model = init_chat_model("mistral-large-latest", model_provider="mistralai")
@@ -73,17 +78,18 @@ class AIAGENT:
         agent_executor = create_react_agent(self.model, self.tools, checkpointer=memory)
         config = {"configurable": {"thread_id": "abc123"}}
 
-        for chunk in agent_executor.stream(
-                {"messages": [HumanMessage(content="Hello, I'm alice Keep in mind i willa sk you about my name?")]}, config
-        ):
-            print(chunk)
-            print("----")
 
         for chunk in agent_executor.stream(
-                {"messages": [HumanMessage(content="whats my name?")]}, config
+                {"messages": [HumanMessage(content="Find the factorial of 9?")]}, config
         ):
             print(chunk)
             print("----")
+        #
+        # for chunk in agent_executor.stream(
+        #         {"messages": [HumanMessage(content="whats my name?")]}, config
+        # ):
+        #     print(chunk)
+        #     print("----")
 
 
 
