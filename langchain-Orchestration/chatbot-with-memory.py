@@ -5,15 +5,18 @@ from langchain_core.messages import HumanMessage
 from langchain_together import ChatTogether
 from dotenv import load_dotenv
 
+## This chatbot uses LangGraph to manage conversation flow, Together.ai to power the model backend,
+## and MemorySaver to store temporary chat history.
+
 class Chatbot:
     def __init__(self):
-        self.load_config()
+        self.load_keys()
         self.model = self.initialize_model()
         self.workflow = self.setup_workflow()
         self.thread_id = "unique-thread-id"
         self.config_dict = {"configurable": {"thread_id": self.thread_id}}
 
-    def load_config(self):
+    def load_keys(self):
         load_dotenv()
         self.api_key = os.getenv("TOGETHER_API_KEY")
         if not self.api_key:
