@@ -21,8 +21,8 @@ os.environ["LANGSMITH_TRACING"] = "true"
 class RagRetrieverWithTools:
     def __init__(self):
         self.llm = init_chat_model("mistral-large-latest", model_provider="mistralai")
-        self.vector_store = None  # will be set later after loading blog
-        self.retrieve = self.create_tool()  # ✅ Add this line
+        self.vector_store = self.create_memory_store()
+        self.retrieve = self.create_tool()
 
 
     def load_blog_and_split(self, url: str) -> List[Document]:
