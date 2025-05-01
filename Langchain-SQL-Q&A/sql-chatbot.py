@@ -61,7 +61,7 @@ def generate_answer(state: State):
     # print(prompt,"prompt here")
     response = llm.invoke(prompt)
     final_response =  {"answer": response.content}
-    print(final_response,"Final response is here")
+    # print(final_response,"****")
     return final_response
 
     # print(response,"response")
@@ -91,7 +91,7 @@ def run_chatbot():
         final_output = "final_response"
         for  step in graph.stream(inputs):
             final_output = step
-        print(step, "step here")
+        print(step, "Final_response_is_here")
 
 if __name__ == "__main__":
     run_chatbot()
