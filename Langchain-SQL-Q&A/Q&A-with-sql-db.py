@@ -22,7 +22,7 @@ class State(TypedDict):
     result: str
     answer: str
 
-keys=os.getenv("TOGETHER_API_KEY")
+keys = os.getenv("TOGETHER_API_KEY")
 llm = init_chat_model("mistralai/Mixtral-8x7B-Instruct-v0.1", model_provider="together")
 query_prompt_template = hub.pull("langchain-ai/sql-query-system-prompt")
 
