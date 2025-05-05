@@ -29,4 +29,8 @@ chain = create_stuff_documents_chain(llm, prompt)
 
 # Invoke chain
 result = chain.invoke({"context": docs})
-print(result)
+# print(result)
+
+# for streaming response
+for token in chain.stream({"context": docs}):
+    print(token, end="")
