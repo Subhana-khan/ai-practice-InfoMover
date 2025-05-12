@@ -1,4 +1,3 @@
-
 import os
 import bs4
 from dotenv import load_dotenv
@@ -14,16 +13,14 @@ from langchain.chat_models import init_chat_model
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.graph import MessagesState, StateGraph, END
 from langgraph.prebuilt import ToolNode, tools_condition
-load_dotenv()
 
+load_dotenv()
 os.environ["LANGSMITH_TRACING"] = "true"
 
 class RagRetrieverWithTools:
     def __init__(self):
         self.llm = init_chat_model("mistral-large-latest", model_provider="mistralai")
-        self.vector_store = self.create_memory_store()
         self.retrieve = self.create_tool()
-
 
     def load_blog_and_split(self, url: str) -> List[Document]:
         loader = WebBaseLoader(
@@ -34,7 +31,6 @@ class RagRetrieverWithTools:
 
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         split_docs = splitter.split_documents(documents)
-
         return split_docs
 
     def create_memory_store(self, split_docs: List[Document]):
@@ -42,11 +38,9 @@ class RagRetrieverWithTools:
         self.vector_store = InMemoryVectorStore(embeddings)
         self.vector_store.add_documents(split_docs)
 
-
     def create_tool(self):
-        #"""" @tool: Converts a function into a callable "tool" the LLM can invoke."""
         @tool(response_format="content_and_artifact")
-        def retrieve( query: str):
+        def retrieve(query: str):
             """Retrieve information related to a query."""
             retrieved_docs = self.vector_store.similarity_search(query, k=2)
             serialized = "\n\n".join(
@@ -57,13 +51,11 @@ class RagRetrieverWithTools:
         return retrieve
 
     def query_or_respond(self, state: MessagesState):
-        """Generate tool call for retrieval or respond."""
         llm_with_tools = self.llm.bind_tools([self.retrieve])
         response = llm_with_tools.invoke(state["messages"])
         return {"messages": [response]}
 
     def generate(self, state: MessagesState):
-        """Generate final answer using tool message content."""
         recent_tool_messages = []
         for message in reversed(state["messages"]):
             if message.type == "tool":
@@ -94,8 +86,8 @@ class RagRetrieverWithTools:
 
     def build_graph(self):
         memory = MemorySaver()
-
         graph_builder = StateGraph(MessagesState)
+
         graph_builder.add_node("query_or_respond", self.query_or_respond)
         graph_builder.add_node("tools", ToolNode([self.retrieve]))
         graph_builder.add_node("generate", self.generate)
@@ -109,32 +101,35 @@ class RagRetrieverWithTools:
         graph_builder.add_edge("tools", "generate")
         graph_builder.add_edge("generate", END)
 
-        graph = graph_builder.compile(checkpointer=memory)
-        return graph
+        return graph_builder.compile(checkpointer=memory)
 
 
 if __name__ == "__main__":
     rag = RagRetrieverWithTools()
 
     url = "https://lilianweng.github.io/posts/2023-06-23-agent/"
+    print(f" Loading and processing blog: {url}")
     split_docs = rag.load_blog_and_split(url)
     rag.create_memory_store(split_docs)
+    print(" Blog content loaded into memory.")
 
     graph = rag.build_graph()
+    print("\n You can now ask questions about the blog! Type 'exit' to quit.\n")
 
-    input_message = "hii, Where is the Oxford university? "
     config = {"configurable": {"thread_id": "abc123"}}
 
-    for step in graph.stream(
-            {"messages": [{"role": "user", "content": input_message}]},
-            config = config,
-            stream_mode="values",
-    ):
-        print(step["messages"][-1].content)
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() in {"exit", "quit"}:
+            print(" Exiting chatbot. Goodbye!")
+            break
+
+        for step in graph.stream({"messages": [{"role": "user", "content": user_input}]}, config=config, stream_mode="values"):
+            response = step["messages"][-1]
+            print("Bot:", response.content)
 
 
-
-# Documentation
+ # Documentation
 # MessagesState: Maintains message history for LangGraph.
 #
 # StateGraph: The heart of LangGraph’s logic flow.
