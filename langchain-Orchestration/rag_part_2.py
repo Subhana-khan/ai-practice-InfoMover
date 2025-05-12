@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     graph = rag.build_graph()
 
-    input_message = "hii, I'm bca degree student"
+    input_message = "hii, Where is the Oxford university? "
     config = {"configurable": {"thread_id": "abc123"}}
 
     for step in graph.stream(
